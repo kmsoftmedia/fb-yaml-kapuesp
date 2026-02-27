@@ -1,0 +1,111 @@
+alias: Kapu üzenetei
+description: ""
+triggers:
+  - entity_id:
+      - sensor.kapu_d1mini32_uart_text
+    to: null
+    trigger: state
+conditions: []
+actions:
+  - if:
+      - condition: numeric_state
+        entity_id: sensor.kapu_d1mini32_uart_text
+        above: 0
+        below: 2
+    then:
+      - metadata: {}
+        data:
+          value: Kapu nyílik!
+        target:
+          entity_id: input_text.uzenet
+        action: input_text.set_value
+      - target:
+          entity_id: input_boolean.kapu_statusz
+        data: {}
+        action: input_boolean.turn_on
+  - if:
+      - condition: numeric_state
+        entity_id: sensor.kapu_d1mini32_uart_text
+        above: 1
+        below: 3
+    then:
+      - metadata: {}
+        data:
+          value: Kapu kinyílt
+        target:
+          entity_id: input_text.uzenet
+        action: input_text.set_value
+      - target:
+          entity_id: input_boolean.kapu_statusz
+        data: {}
+        action: input_boolean.turn_on
+  - if:
+      - condition: numeric_state
+        entity_id: sensor.kapu_d1mini32_uart_text
+        above: 2
+        below: 4
+    then:
+      - metadata: {}
+        data:
+          value: Kapu záródik!
+        target:
+          entity_id: input_text.uzenet
+        action: input_text.set_value
+  - if:
+      - condition: numeric_state
+        entity_id: sensor.kapu_d1mini32_uart_text
+        above: 3
+        below: 5
+    then:
+      - metadata: {}
+        data:
+          value: Kapu zárva!
+        target:
+          entity_id: input_text.uzenet
+        action: input_text.set_value
+      - metadata: {}
+        data: {}
+        target:
+          entity_id: input_boolean.kapu_statusz
+        action: input_boolean.turn_off
+  - if:
+      - condition: numeric_state
+        entity_id: sensor.kapu_d1mini32_uart_text
+        above: 4
+        below: 6
+    then:
+      - metadata: {}
+        data:
+          value: Kapu megállt!
+        target:
+          entity_id: input_text.uzenet
+        action: input_text.set_value
+  - if:
+      - condition: numeric_state
+        entity_id: sensor.kapu_d1mini32_uart_text
+        above: 5
+        below: 7
+    then:
+      - metadata: {}
+        data:
+          value: Kapu nyílik kiskapunak!
+        target:
+          entity_id: input_text.uzenet
+        action: input_text.set_value
+      - target:
+          entity_id: input_boolean.kapu_statusz
+        data: {}
+        action: input_boolean.turn_on
+  - if:
+      - condition: numeric_state
+        entity_id: sensor.kapu_d1mini32_uart_text
+        above: 6
+        below: 8
+    then:
+      - metadata: {}
+        data:
+          value: Kapu kinyílt kiskapunak!
+        target:
+          entity_id: input_text.uzenet
+        action: input_text.set_value
+mode: single
