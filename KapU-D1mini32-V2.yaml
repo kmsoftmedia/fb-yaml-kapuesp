@@ -1,0 +1,115 @@
+esphome:
+  name: esphome-web-XXXXXX
+  friendly_name: Kapu-UART-Esp32
+
+esp32:
+  board: wemos_d1_mini32
+  framework:
+    type: arduino
+
+logger:
+  level: VERBOSE
+  baud_rate: 0
+
+api:
+  encryption:
+    key: "" #cseréld sajátra
+
+ota:
+  - platform: esphome
+    password: "" #cseréld sajátra
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "" #cseréld sajátra
+    password: "" #cseréld sajátra
+
+captive_portal:
+
+web_server:
+  port: 80
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  baud_rate: 9600
+
+  debug:
+    direction: RX
+    dummy_receiver: true
+    after:
+      delimiter: "\r"
+    sequence:
+      - lambda: |-
+          std::string line(bytes.begin(), bytes.end());
+          ESP_LOGD("uart_line", "Received: %s", line.c_str());
+
+          id(uart_readline).publish_state(line);
+
+          if (line.find("Opening") != std::string::npos) {
+            id(kapu_status).publish_state(1);
+            if (!id(kapustatuszesp).state) id(kapustatuszesp).turn_on();
+
+          } else if (line.find("Opened") != std::string::npos) {
+            id(kapu_status).publish_state(2);
+
+          } else if (line.find("Closing") != std::string::npos) {
+            id(kapu_status).publish_state(3);
+
+          } else if (line.find("Closed") != std::string::npos) {
+            id(kapu_status).publish_state(4);
+            if (id(kapustatuszesp).state) id(kapustatuszesp).turn_off();
+
+          } else if (line.find("Stopped") != std::string::npos) {
+            id(kapu_status).publish_state(5);
+
+          } else if (line.find("PedOpening") != std::string::npos) {
+            id(kapu_status).publish_state(6);
+
+          } else if (line.find("PedOpened") != std::string::npos) {
+            id(kapu_status).publish_state(7);
+          }
+
+text_sensor:
+  - platform: template
+    name: "UART Read Line"
+    id: uart_readline
+
+sensor:
+  - platform: template
+    name: "UART_text"
+    id: kapu_status
+
+switch:
+  - platform: gpio
+    pin: GPIO2
+    name: "Kapu-statusz-esp"
+    id: kapustatuszesp
+
+  - platform: restart
+    name: "Restart"
+
+button:
+  - platform: template
+    name: "Nyitás"
+    on_press:
+      - uart.write: "FULL OPEN\r"
+
+  - platform: template
+    name: "Zárás"
+    on_press:
+      - uart.write: "FULL CLOSE\r"
+
+  - platform: template
+    name: "Stop"
+    on_press:
+      - uart.write: "STOP\r"
+
+  - platform: template
+    name: "Kiskapu"
+    on_press:
+      - uart.write: "PED OPEN\r"
